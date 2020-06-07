@@ -98,7 +98,7 @@ trait DateFormatTrait
      */
     public function nice($timezone = null, $locale = null)
     {
-        return $this->i18nFormat(static::$niceFormat, $timezone, $locale);
+        return (string)$this->i18nFormat(static::$niceFormat, $timezone, $locale);
     }
 
     /**
@@ -147,7 +147,7 @@ trait DateFormatTrait
      * You can control the default locale used through `Time::setDefaultLocale()`.
      * If empty, the default will be taken from the `intl.default_locale` ini config.
      *
-     * @param string|int|null $format Format string.
+     * @param string|int|array|null $format Format string.
      * @param string|\DateTimeZone|null $timezone Timezone string or DateTimeZone object
      * in which the date will be displayed. The timezone stored for this object will not
      * be changed.
@@ -178,7 +178,7 @@ trait DateFormatTrait
      * Returns a translated and localized date string.
      * Implements what IntlDateFormatter::formatObject() is in PHP 5.5+
      *
-     * @param \DateTime $date Date.
+     * @param \DateTime|\DateTimeImmutable $date Date.
      * @param string|int|array $format Format.
      * @param string|null $locale The locale name in which the date should be displayed.
      * @return string
@@ -196,14 +196,15 @@ trait DateFormatTrait
             $pattern = $format;
         }
 
+        if ($locale === null) {
+            $locale = I18n::getLocale();
+        }
+
+        // phpcs:ignore Generic.Files.LineLength
         if (preg_match('/@calendar=(japanese|buddhist|chinese|persian|indian|islamic|hebrew|coptic|ethiopic)/', $locale)) {
             $calendar = IntlDateFormatter::TRADITIONAL;
         } else {
             $calendar = IntlDateFormatter::GREGORIAN;
-        }
-
-        if ($locale === null) {
-            $locale = I18n::getLocale();
         }
 
         $timezone = $date->getTimezone()->getName();
@@ -217,11 +218,11 @@ trait DateFormatTrait
             }
             $formatter = datefmt_create(
                 $locale,
-                $dateFormat,
-                $timeFormat,
+                (int)$dateFormat,
+                (int)$timeFormat,
                 $timezone,
                 $calendar,
-                $pattern
+                (string)$pattern
             );
             if (!$formatter) {
                 throw new RuntimeException(
@@ -240,7 +241,7 @@ trait DateFormatTrait
      */
     public function __toString()
     {
-        return $this->i18nFormat();
+        return (string)$this->i18nFormat();
     }
 
     /**
@@ -462,7 +463,7 @@ trait DateFormatTrait
         return [
             'time' => $this->format('Y-m-d H:i:s.uP'),
             'timezone' => $this->getTimezone()->getName(),
-            'fixedNowTime' => static::hasTestNow() ? static::getTestNow()->format('Y-m-d H:i:s.uP') : false,
+            'fixedNowTime' => static::hasTestNow() ? static::getTestNow()->format('Y-m-d\TH:i:s.uP') : false,
         ];
     }
 }
