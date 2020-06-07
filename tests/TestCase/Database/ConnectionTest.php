@@ -996,6 +996,30 @@ class ConnectionTest extends TestCase
     }
 
     /**
+     * @see https://github.com/cakephp/cakephp/issues/14676
+     * @return void
+     */
+    public function testLoggerDecoratorDoesNotPrematurelyFetchRecords()
+    {
+        Log::setConfig('queries', ['className' => 'Array']);
+        $logger = new QueryLogger();
+        $this->connection->enableQueryLogging(true);
+        $this->connection->setLogger($logger);
+        $st = $this->connection->execute('SELECT * FROM things LIMIT 1');
+        $this->assertInstanceOf(LoggingStatement::class, $st);
+
+        $messages = Log::engine('queries')->read();
+        $this->assertCount(0, $messages);
+
+        $expected = [[0 => 1, 1 => 'a title', 2 => 'a body']];
+        $results = $st->fetchAll();
+        $this->assertEquals($expected, $results);
+
+        $messages = Log::engine('queries')->read();
+        $this->assertCount(1, $messages);
+    }
+
+    /**
      * Tests that begin and rollback are also logged
      *
      * @return void
