@@ -196,15 +196,14 @@ trait DateFormatTrait
             $pattern = $format;
         }
 
-        if ($locale === null) {
-            $locale = I18n::getLocale();
-        }
-
-        // phpcs:ignore Generic.Files.LineLength
         if (preg_match('/@calendar=(japanese|buddhist|chinese|persian|indian|islamic|hebrew|coptic|ethiopic)/', $locale)) {
             $calendar = IntlDateFormatter::TRADITIONAL;
         } else {
             $calendar = IntlDateFormatter::GREGORIAN;
+        }
+
+        if ($locale === null) {
+            $locale = I18n::getLocale();
         }
 
         $timezone = $date->getTimezone()->getName();
